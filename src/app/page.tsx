@@ -12,6 +12,7 @@ import {
   Boxes,
   Database,
   ExternalLink,
+  CheckCircle2,
 } from 'lucide-react';
 
 interface OrderItem {
@@ -34,8 +35,8 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
   const [customerId, setCustomerId] = useState('');
   const [productId, setProductId] = useState('');
-  const [quantity, setQuantity] = useState(1);
-  const [unitPrice, setUnitPrice] = useState(10000);
+  const [quantity, setQuantity] = useState<number | ''>(1);
+  const [unitPrice, setUnitPrice] = useState<number | ''>(10000);
 
   const { data: orders = [], isLoading } = useQuery<Order[]>({
     queryKey: ['orders'],
@@ -59,12 +60,24 @@ export default function Dashboard() {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       setCustomerId('');
       setProductId('');
+      setQuantity(1);
+      setUnitPrice(10000);
+    },
+  });
+
+  const completeOrderMutation = useMutation({
+    mutationFn: async (orderId: string) => {
+      const res = await axios.patch(`${API_URL}/orders/${orderId}/complete`);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerId || !productId) return;
+    if (!customerId || !productId || !quantity || !unitPrice) return;
 
     createOrderMutation.mutate({
       customerId,
@@ -203,7 +216,9 @@ export default function Dashboard() {
                     type="number"
                     min="1"
                     value={quantity}
-                    onChange={(e) => setQuantity(Number(e.target.value))}
+                    onChange={(e) =>
+                      setQuantity(e.target.value === '' ? '' : Number(e.target.value))
+                    }
                     className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500"
                   />
                 </div>
@@ -215,7 +230,9 @@ export default function Dashboard() {
                     type="number"
                     step="1000"
                     value={unitPrice}
-                    onChange={(e) => setUnitPrice(Number(e.target.value))}
+                    onChange={(e) =>
+                      setUnitPrice(e.target.value === '' ? '' : Number(e.target.value))
+                    }
                     className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500"
                   />
                 </div>
@@ -263,6 +280,7 @@ export default function Dashboard() {
                       <th className="px-4 py-3">Cliente</th>
                       <th className="px-4 py-3">Items</th>
                       <th className="px-4 py-3">Estado</th>
+                      <th className="px-4 py-3">Acción</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/50">
@@ -281,9 +299,27 @@ export default function Dashboard() {
                           ))}
                         </td>
                         <td className="px-4 py-3">
-                          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                            {order.status}
-                          </span>
+                          {order.status === 'COMPLETED' ? (
+                            <span className="px-2 py-1 text-xs font-semibold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                              COMPLETED
+                            </span>
+                          ) : (
+                            <span className="px-2 py-1 text-xs font-semibold rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                              PENDING
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          {order.status === 'PENDING' && (
+                            <button
+                              onClick={() => completeOrderMutation.mutate(order.id)}
+                              disabled={completeOrderMutation.isPending}
+                              className="flex items-center gap-1 text-xs px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded transition"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              Completar
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))}
