@@ -1,0 +1,19 @@
+name: Nexus Dashboard checks
+on: [push, pull_request]
+jobs:
+  build-and-lint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+      NEXT_PUBLIC_ORDERS_API_URL: 'http://localhost:3000'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
