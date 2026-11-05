@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Nexus Orders Dashboard — Panel de operaciones
 
-## Getting Started
+Frontend experimental de **gestión de pedidos** desarrollado con **Next.js 16, React 19, TypeScript, TanStack Query, Axios y Tailwind CSS**. Funciona como interfaz para la API del repositorio [`nexus-orders-api`](https://github.com/andres-olguin/nexus-orders-api).
 
-First, run the development server:
+> **Estado:** prototipo de interfaz y flujo de pedidos. No es un producto de analítica comercial en producción; no existe evidencia de autenticación multiempresa validada ni de resultados comerciales reales.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Funcionalidades presentes
+
+- Listado de pedidos desde `GET /orders`.
+- Formulario para registrar pedidos con cliente, producto, cantidad y precio unitario.
+- Acción para marcar un pedido como completado mediante `PATCH /orders/:id/complete`.
+- Actualización periódica de pedidos con TanStack Query.
+
+La interfaz utiliza inicialmente una dirección fija para la API: `http://localhost:3000`. La configuración por variable de entorno `NEXT_PUBLIC_ORDERS_API_URL` está propuesta en el [PR #1](https://github.com/andres-olguin/nexus-orders-dashboard/pull/1), pero **ese cambio no forma parte del código principal mientras el PR esté abierto**.
+
+## Arquitectura resumida
+
+```mermaid
+flowchart LR
+    A[Usuario] --> B[Next.js / React]
+    B --> C[TanStack Query / Axios]
+    C --> D[API NestJS :3000]
+    D --> E[(SQLite)]
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+| Ruta | Contenido |
+|---|---|
+| [`src/app/page.tsx`](src/app/page.tsx) | Interfaz principal y flujos de pedidos |
+| [`src/app/`](src/app/) | Aplicación y estilos |
+| [`public/`](public/) | Recursos públicos |
+| [`AGENTS.md`](AGENTS.md) | Convenciones de agentes y colaboración |
+| [`DOCUMENTATION.md`](DOCUMENTATION.md) | Material técnico existente |
+| [`docs/`](docs/) | Revisión, integración y planes de escalabilidad |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Desarrollo local
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**Requisitos:** Node.js compatible con Next.js 16 y npm. El dashboard debe ejecutarse en un puerto **distinto** de la API para evitar conflictos.
 
-## Learn More
+```bash
+npm ci
+npm run dev -- -p 3001
+```
 
-To learn more about Next.js, take a look at the following resources:
+Abrir `http://localhost:3001` después de iniciar el backend por separado en `http://localhost:3000`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Bloqueo actual comprobado:** `npm ci` falla por inconsistencias de `package-lock.json` con paquetes `@emnapi/*`. Los comandos de desarrollo y compilación **no han sido validados en CI** desde ese bloqueo. Ver [issue #2](https://github.com/andres-olguin/nexus-orders-dashboard/issues/2) y [PR #1](https://github.com/andres-olguin/nexus-orders-dashboard/pull/1).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Controles de calidad pendientes
 
-## Deploy on Vercel
+- El código actual devuelve `[]` cuando falla la consulta HTTP, por lo que puede presentar falsamente una lista vacía en vez de un estado de error. Corregir antes de usar datos de negocio.
+- Validar cliente/producto, cantidades y precios contra DTO del backend.
+- Agregar estados vacíos, carga, reintento, errores y manejo accesible del formulario.
+- Implementar autenticación/autorización acorde con la API, no solamente elementos de interfaz.
+- Verificar CORS y contrato HTTP antes de intentar desplegar.
+- Después de resolver el lockfile, ejecutar `npm run lint` y `npm run build` registrando resultados reales.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Evolución prevista
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Primero estabilizar la integración API/UI y las pruebas; después incorporar diseño responsive, permisos, accesibilidad y métricas reales. No introducir caches distribuidas ni otros servicios hasta medir necesidades.
+
+[Plan de integración](docs/INTEGRATION_AND_RELEASE_PLAN.md) *(propuesto en PR, no necesariamente publicado en main)* · [Estudio de arquitectura y escalabilidad](docs/ARCHITECTURE_SCALABILITY_2026-11-04.md).
+
+**Uso:** laboratorio de software para operaciones comerciales; no utilizar datos de clientes reales antes de revisar seguridad y privacidad.
