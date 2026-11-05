@@ -58,6 +58,6 @@ Abrir `http://localhost:3001` después de iniciar el backend por separado en `ht
 
 Primero estabilizar la integración API/UI y las pruebas; después incorporar diseño responsive, permisos, accesibilidad y métricas reales. No introducir caches distribuidas ni otros servicios hasta medir necesidades.
 
-[Plan de integración](docs/INTEGRATION_AND_RELEASE_PLAN.md) *(propuesto en PR, no necesariamente publicado en main)* · [Estudio de arquitectura y escalabilidad](docs/ARCHITECTURE_SCALABILITY_2026-11-04.md).
+[Plan de integración propuesto en PR #1](https://github.com/andres-olguin/nexus-orders-dashboard/pull/1) *(pendiente de integrar a main)* · [Estudio de arquitectura y escalabilidad](docs/ARCHITECTURE_SCALABILITY_2026-11-04.md).
 
 **Uso:** laboratorio de software para operaciones comerciales; no utilizar datos de clientes reales antes de revisar seguridad y privacidad.
